@@ -98,6 +98,21 @@ footer { margin-top: 28px; font-size: 12px; color: var(--muted); }
       </div>
 
       <div class="card">
+        <h2>Príklad: 3 kľúče, cieľ 1,2B a najvyššie bedne</h2>
+        <p style="margin-top:0">Po jednom kľúči na Hard, Brutal a Nightmare – na každej obtiažnosti najvyššia Hydra bedna
+        a spolu presne 1,2B Clash bodov:</p>
+        <div class="tablewrap"><table>
+          <tr><th>Obtiažnosť</th><th class="num">Poškodenie</th><th class="num">Clash body</th><th>Bedna</th></tr>
+          <tr><td><b>Hard</b> <span class="note">×2</span></td><td class="num">20,4M</td><td class="num">40,8M</td><td>Knight</td></tr>
+          <tr><td><b>Brutal</b> <span class="note">×3</span></td><td class="num">29,4M</td><td class="num">88,2M</td><td>Guardian</td></tr>
+          <tr><td><b>Nightmare</b> <span class="note">×4</span></td><td class="num"><b>~268M</b></td><td class="num">1,07B</td><td>Grandmaster</td></tr>
+          <tr><td><b>Spolu</b></td><td></td><td class="num"><b>1,2B</b></td><td class="w">✓ všetky najvyššie</td></tr>
+        </table></div>
+        <p class="note">Ak ide len o Hydra bedny: Hard 20,4M + Brutal 29,4M + Nightmare 36,6M stačí – to je len ~275M Clash bodov.</p>
+        <div class="chips" style="margin:6px 0 0"><button id="useExample">Použiť tento príklad v kalkulačke</button></div>
+      </div>
+
+      <div class="card">
         <h2>Hydra truhlice za osobné poškodenie</h2>
         <div class="tablewrap"><table id="chests"></table></div>
         <p class="note">Týždenná odmena za Hydru (nie Clash body): truhlicu určí tvoje poškodenie na danej obtiažnosti,
@@ -186,6 +201,12 @@ function render() {
 }
 $("#target").oninput = render;
 document.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => { $("#target").value = b.dataset.goal; render(); });
+$("#useExample").onclick = () => {
+  $("#target").value = "1.2B";
+  plan = {Hard: "20.4M", Brutal: "29.4M"};
+  render();
+  window.scrollTo({top: 0, behavior: "smooth"});
+};
 render();
 </script>
 </body>
