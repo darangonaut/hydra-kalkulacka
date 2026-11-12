@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydra kalkulačka</title>
+<meta name="description" content="RAID: Shadow Legends – koľko poškodenia nahrať v Hydre na cieľ Clash bodov a na najvyššiu Hydra truhlicu.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐉</text></svg>">
+<style>
+:root {
+  --bg: #f4f2ee; --panel: #ffffff; --ink: #1d1b18; --muted: #6f6a62; --line: #e3dfd8;
+  --accent: #b5532b; --accent-ink: #ffffff; --ok: #2f7d4f; --bad: #b3362f; --chip: #efebe4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161513; --panel: #201e1b; --ink: #ece8e1; --muted: #9a948a; --line: #34312c;
+    --accent: #e07a4f; --accent-ink: #1a1512; --ok: #5cbf86; --bad: #e46a62; --chip: #2a2824;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 28px 16px 60px; }
+header h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -.01em; }
+header p { margin: 0 0 22px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.card + .card { margin-top: 20px; }
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 14px; font-weight: 600; }
+label.f { display: block; margin-bottom: 14px; }
+label.f > span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+input[type=text] { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); font: inherit; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 14px; }
+.chips button { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  font: inherit; font-weight: 600; cursor: pointer; }
+.chips button:hover { border-color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); }
+a { color: var(--accent); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+.stat .k { font-size: 12px; color: var(--muted); }
+.stat .v { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.w { color: var(--ok); } .l { color: var(--bad); }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+td input[type=text] { max-width: 130px; padding: 6px 9px; }
+footer { margin-top: 28px; font-size: 12px; color: var(--muted); }
+.grid > * { min-width: 0; }
+.mult { display: none; color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+@media (max-width: 600px) {
+  .hide-m { display: none; }
+  .mult { display: inline; }
+  th, td { padding: 7px 5px; }
+  td input[type=text] { max-width: none; min-width: 84px; }
+  .stat .v { font-size: 18px; }
+  #chests td:nth-child(2), #chests th:nth-child(2) { display: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Hydra kalkulačka</h1>
+    <p>Koľko poškodenia nahrať v Hydre, aby si mal presne toľko Clash bodov, koľko chceš – a koľko treba na najvyššiu Hydra truhlicu.</p>
+  </header>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Cieľ</h2>
+        <label class="f"><span>Koľko Clash bodov chcem mať</span>
+          <input id="target" type="text" value="1.2B" placeholder="napr. 1.2B alebo 700M" inputmode="decimal"></label>
+        <div class="chips">
+          <button data-goal="70M">70M</button><button data-goal="280M">280M</button>
+          <button data-goal="700M">700M</button><button data-goal="1.2B">1,2B</button>
+        </div>
+        <label class="f"><span>Body, ktoré už mám</span>
+          <input id="have" type="text" value="0" placeholder="0" inputmode="decimal"></label>
+        <p class="note">Hranice truhlíc za osobné Clash body: 70M · 280M · 700M · 1,2B.<br>
+        Násobok bodov platí len pre <b>prvý kľúč</b> na danej obtiažnosti – ďalší kľúč na tej istej obtiažnosti dáva ×1.<br>
+        Čísla píš ako <b>300M</b>, <b>1.2B</b> alebo <b>1,2B</b>.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Koľko nahrať</h2>
+        <div class="stats">
+          <div class="stat"><div class="k">Cieľ</div><div class="v" id="goalV">–</div></div>
+          <div class="stat"><div class="k">Naplánované</div><div class="v" id="planV">–</div></div>
+          <div class="stat"><div class="k">Ešte chýba</div><div class="v" id="leftV">–</div></div>
+        </div>
+        <div class="tablewrap"><table id="calc"></table></div>
+        <p class="note" id="calcNote" style="margin-top:12px"></p>
+      </div>
+
+      <div class="card">
+        <h2>Hydra truhlice za osobné poškodenie</h2>
+        <div class="tablewrap"><table id="chests"></table></div>
+        <p class="note">Týždenná odmena za Hydru (nie Clash body): truhlicu určí tvoje poškodenie na danej obtiažnosti,
+        ak klan Hydru zabije, dostaneš dve. Zdroj:
+        <a href="https://ayumilove.net/raid-shadow-legends-hydra-clan-boss-guide/" target="_blank" rel="noopener">ayumilove.net</a>,
+        zhoduje sa s <a href="https://hellhades.com/hydra-clan-boss-rewards/" target="_blank" rel="noopener">hellhades.com</a> –
+        nie je to oficiálna tabuľka Plaria, v hre si to over v náhľade truhlice.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>RAID: Shadow Legends je ochranná známka Plarium. Neoficiálna komunitná pomôcka.</footer>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+// Clash Points multiplier za prvý kľúč na obtiažnosti
+const DIFFS = [["Nightmare", 4], ["Brutal", 3], ["Hard", 2], ["Normal", 1]];
+// minimálne poškodenie na Hydra truhlicu (ayumilove.net / hellhades.com), posledná = najvyššia
+const CHESTS = {
+  Normal: [["Novice", 1.67e6], ["Novice", 2.22e6], ["Adept", 4.44e6], ["Warrior", 6.66e6]],
+  Hard: [["Adept", 5.1e6], ["Adept", 6.8e6], ["Warrior", 13.6e6], ["Knight", 20.4e6]],
+  Brutal: [["Warrior", 7.35e6], ["Warrior", 9.8e6], ["Knight", 19.6e6], ["Guardian", 29.4e6]],
+  Nightmare: [["Knight", 9.15e6], ["Guardian", 12.2e6], ["Master", 24.4e6], ["Grandmaster", 36.6e6]],
+};
+const chestFor = (d, dmg) => { let c = null; for (const t of CHESTS[d]) if (dmg >= t[1]) c = t; return c; };
+
+function parseAmt(t) {
+  const m = String(t || "").replace(/\s/g, "").replace(",", ".").match(/^([\d.]+)([kmb])?$/i);
+  if (!m) return null;
+  return parseFloat(m[1]) * ({k: 1e3, m: 1e6, b: 1e9}[(m[2] || "").toLowerCase()] || 1);
+}
+function fmt(v) {
+  if (!isFinite(v)) return "–";
+  const a = Math.abs(v);
+  const [d, u] = a >= 1e9 ? [1e9, "B"] : a >= 1e6 ? [1e6, "M"] : a >= 1e3 ? [1e3, "K"] : [1, ""];
+  return (v / d).toLocaleString("sk-SK", {maximumFractionDigits: v / d >= 100 ? 0 : 2}) + u;
+}
+
+// stav – v prehliadači (nič sa nikam neposiela)
+let plan = {};
+const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+try { plan = JSON.parse(load("hydraPlan", "{}")) || {}; } catch { plan = {}; }
+$("#target").value = load("hydraTarget", "1.2B");
+$("#have").value = load("hydraHave", "0");
+
+function render() {
+  const goal = parseAmt($("#target").value), have = parseAmt($("#have").value) || 0;
+  save("hydraTarget", $("#target").value); save("hydraHave", $("#have").value); save("hydraPlan", JSON.stringify(plan));
+  if (goal == null) { $("#goalV").textContent = "?"; return; }
+  let planned = 0;
+  for (const [d, mult] of DIFFS) { const v = parseAmt(plan[d]); if (v) planned += v * mult; }
+  const left = Math.max(0, goal - have - planned);
+  $("#goalV").textContent = fmt(goal);
+  $("#planV").textContent = fmt(have + planned);
+  $("#leftV").innerHTML = left > 0 ? `<span class="l">${fmt(left)}</span>` : `<span class="w">splnené</span>`;
+
+  $("#calc").innerHTML = `<tr><th>Obtiažnosť</th><th class="num hide-m">Násobok</th><th>Nahrám</th>
+      <th class="num hide-m">= body</th><th class="num">Na zvyšok</th><th class="hide-m">Max truhlica</th></tr>` +
+    DIFFS.map(([d, mult]) => {
+      const v = parseAmt(plan[d]);
+      const need = left > 0 && !v ? fmt(left / mult) : "–";
+      const top = CHESTS[d][CHESTS[d].length - 1], got = v ? chestFor(d, v) : null;
+      const chest = !v ? `${top[0]} od ${fmt(top[1])}`
+        : got && got[1] === top[1] ? `<span class="w">✓ ${top[0]}</span>`
+        : `${got ? got[0] : "žiadna"} – na ${top[0]} chýba ${fmt(top[1] - v)}`;
+      return `<tr><td><b>${d}</b><span class="mult">×${mult}</span></td><td class="num hide-m">×${mult}</td>
+        <td><input type="text" data-plan="${d}" value="${esc(plan[d] || "")}" placeholder="napr. 200M" inputmode="decimal"></td>
+        <td class="num hide-m">${v ? fmt(v * mult) : "–"}</td><td class="num"><b>${need}</b></td><td class="hide-m">${chest}</td></tr>`;
+    }).join("");
+  $("#calc").querySelectorAll("[data-plan]").forEach(inp => inp.onchange = () => { plan[inp.dataset.plan] = inp.value.trim(); render(); });
+
+  const over = have + planned - goal;
+  $("#calcNote").innerHTML = left > 0
+    ? `„Na zvyšok“ = koľko poškodenia nahrať na <b>prvom kľúči</b> danej obtiažnosti, ak by si zvyšok dorobil len tam.`
+    : `Plán dá <b>${fmt(have + planned)}</b> bodov – o ${fmt(over)} viac ako cieľ.`;
+
+  $("#chests").innerHTML = `<tr><th>Obtiažnosť</th><th>Truhlice (od poškodenia)</th><th class="num">Max truhlica</th></tr>` +
+    DIFFS.map(([d]) => {
+      const t = CHESTS[d], top = t[t.length - 1];
+      return `<tr><td><b>${d}</b></td><td>${t.slice(0, -1).map(x => `${x[0]} ${fmt(x[1])}`).join(" · ")}</td>
+        <td class="num"><b>${top[0]} ${fmt(top[1])}+</b></td></tr>`;
+    }).join("");
+}
+["#target", "#have"].forEach(id => $(id).oninput = render);
+document.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => { $("#target").value = b.dataset.goal; render(); });
+render();
+</script>
+</body>
+</html>
