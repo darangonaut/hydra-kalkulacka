@@ -203,7 +203,7 @@ $("#target").oninput = render;
 document.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => { $("#target").value = b.dataset.goal; render(); });
 $("#useExample").onclick = () => {
   $("#target").value = "1.2B";
-  plan = {Hard: "50M", Brutal: "100M"};
+  plan = {Nightmare: "200M", Brutal: "100M", Hard: "50M"};
   render();
   window.scrollTo({top: 0, behavior: "smooth"});
 };
